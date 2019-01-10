@@ -22,16 +22,16 @@ class MarkersAnalizer:
         tmp_goals_dict = {}
         for key in objects_dict.keys():
             if len(str(key)) == 1:
-                self.__robots[key] = Robot(objects_dict[key])
+                self.__robots[key] = Robot(key, objects_dict[key])
             elif len(str(key)) == 3:
-                tmp_goals_dict[key] = Goal(objects_dict[key])
+                tmp_goals_dict[key] = Goal(key, objects_dict[key])
             else:
                 if key//10 not in tmp_obstacles_dict:
-                    tmp_obstacles_dict[key//10] = [Marker(objects_dict[key])]
+                    tmp_obstacles_dict[key//10] = [Marker(key//10, objects_dict[key])]
                 else:
-                    tmp_obstacles_dict[key // 10].append(Marker(objects_dict[key]))
+                    tmp_obstacles_dict[key // 10].append(Marker(key//10, objects_dict[key]))
         for key in tmp_obstacles_dict.keys():
-            self.__obstacles[key] = Obstacle(tmp_obstacles_dict[key])
+            self.__obstacles[key] = Obstacle(key, tmp_obstacles_dict[key])
 
         if len(self.__robots.keys()):
             self.set_goals_id_from_platform_id(tmp_goals_dict)

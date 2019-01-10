@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 
 import rospy
-from platforms_server.msg import Aruco as aruco_msg, Point2d, MarkerCorners
+from platforms_server.msg import ArucoData, FieldObjects
 from vision.MarkersAnalizer import MarkersAnalizer
 
 
 def recognize_fields_object_by_id(data):
-    markers = data.markers
-    corners_list = list(marker.corners for marker in markers)
-    ids = data.ids
-
-    markers_dict = dict(zip(ids, corners_list))
-
+    ids = []
+    corners = []
+    for object in data.markers:
+        ids.append(object.id)
+        corners.append(object.corners)
+    markers_dict = dict(zip(ids, corners))
     analizer.parse_fields_objects_by_id(markers_dict)
     robots = analizer.get_robots()
     goals = analizer.get_goals()
@@ -21,13 +21,20 @@ def recognize_fields_object_by_id(data):
 
 
 def callback(data):
+    objects_msg = FieldObjects()
     robots, goals, obstacles = recognize_fields_object_by_id(data)
 
-    print(robots)
-    print(goals)
-    print(obstacles)
+    objects_msg.robots = list(robot.prepare_msg() for robot in robots.values())
+    objects_msg.goals = list(goal.prepare_msg() for goal in goals.values())
+    objects_msg.obstacles = list(obstacle.prepare_msg() for obstacle in obstacles.values())
+
+    field_objects_pub.publish(objects_msg)
+
 
 analizer = MarkersAnalizer()
-rospy.init_node('markers_analizer_node', anonymous=True)
-markers_data_sub = rospy.Subscriber("detected_markers", aruco_msg, callback)
+rospy.init_node("markers_analizer_node")
+markers_data_sub = rospy.Subscriber("detected_markers", ArucoData, callback)
+field_objects_pub = rospy.Publisher("field_objects", FieldObjects)
+
+
 rospy.spin()

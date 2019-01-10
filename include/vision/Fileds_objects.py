@@ -1,14 +1,16 @@
 from numpy import array
 from math import degrees, sqrt, acos
 from matplotlib.path import Path
-from vision.vision_constants  import IMAGE_SIZE, HIGH_BOUNDS, LOW_BOUNDS
+from vision.vision_constants import IMAGE_SIZE, HIGH_BOUNDS, LOW_BOUNDS
+from platforms_server.msg import RobotData, GoalData, ObstacleData
 
 
 class Point:
     def __init__(self, xy=None):
         if isinstance(xy, tuple):
-            self.x = xy[0]
-            self.y = xy[1]
+            if len(xy) >= 2:
+                self.x = xy[0]
+                self.y = xy[1]
         else:
             if not isinstance(xy, type(None)):
                 self.x = xy.x
@@ -48,7 +50,8 @@ class Point:
 
 
 class Marker:
-    def __init__(self, corners):
+    def __init__(self, id, corners):
+        self.id = id
         self.corners = list(Point(xy) for xy in corners)
         self.center = self.get_center()
 
@@ -79,15 +82,30 @@ class Marker:
 
 
 class Goal(Marker):
-    def __init__(self, corners):
-        Marker.__init__(self, corners)
+    def __init__(self, id, corners):
+        Marker.__init__(self, id, corners)
 
+    def prepare_msg(self):
+        msg = GoalData()
+        msg.id = self.id
+        msg.center = self.center
+        msg.corners = self.corners
+        return msg
 
 
 class Robot(Marker):
-    def __init__(self, corners):
-        Marker.__init__(self, corners)
+    def __init__(self, id, corners):
+        Marker.__init__(self, id, corners)
         self.direction = self.get_direction()
+
+    def prepare_msg(self):
+        msg = RobotData()
+        msg.id = self.id
+        msg.center = self.center
+        msg.direction = self.get_direction()
+        msg.corners = self.corners
+        return msg
+
 
     def get_direction(self):
         front_left_corner = self.corners[0]
@@ -142,10 +160,18 @@ class Robot(Marker):
 
 
 class Obstacle:
-    def __init__(self, marker_list):
+    def __init__(self, id, marker_list):
+        self.id = id
         unsorted_points = self.get_unsorted_obstacles_points(marker_list)
         self.geometric_center = self.compute_geometric_center(marker_list)
         self.obstacle_points = self.sort_obstacles_points(unsorted_points)
+
+    def prepare_msg(self):
+        msg = ObstacleData()
+        msg.id = self.id
+        msg.center = self.geometric_center
+        msg.corners = self.obstacle_points
+        return msg
 
     def get_obstacle_points(self):
         return self.obstacle_points
@@ -153,16 +179,21 @@ class Obstacle:
     def get_unsorted_obstacles_points(self, markers_list, marker_border_points_num=2):
         obstacle_border_points = []
         geometric_center = self.compute_geometric_center(markers_list)
-        for marker in markers_list:
-            distances_to_geometric_center = {}
-            for pt in marker.get_corners():
-                distance = self.get_distance_between_pts(geometric_center, pt)
-                while distance in distances_to_geometric_center:
-                    distance += 0.001
-                distances_to_geometric_center[distance] = pt
-            for num in range(marker_border_points_num):
-                obstacle_border_points.append(distances_to_geometric_center.pop(
-                                              max(list(distances_to_geometric_center.keys()))))
+        if len(markers_list) > 1:
+            for marker in markers_list:
+                distances_to_geometric_center = {}
+                for pt in marker.get_corners():
+                    distance = self.get_distance_between_pts(geometric_center, pt)
+                    while distance in distances_to_geometric_center:
+                        distance += 0.001
+                    distances_to_geometric_center[distance] = pt
+                for num in range(marker_border_points_num):
+                    obstacle_border_points.append(distances_to_geometric_center.pop(
+                                                  max(list(distances_to_geometric_center.keys()))))
+        else:
+            if len(markers_list):
+                obstacle_border_points = list(pt for pt in markers_list[0].get_corners())
+
         return obstacle_border_points
 
     def get_distance_between_pts(self, pt1, pt2):

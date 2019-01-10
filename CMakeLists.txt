@@ -11,21 +11,25 @@ find_package(catkin REQUIRED COMPONENTS
 
 
 add_message_files(
-   FILES
-   Aruco.msg
-   MarkerCorners.msg
-   Point2d.msg   
+  FILES
+  Point2d.msg
+  MarkerData.msg
+  ArucoData.msg
+  RobotData.msg
+  GoalData.msg
+  ObstacleData.msg
+  FieldObjects.msg
 )
 
 
 generate_messages(
-   DEPENDENCIES
-   std_msgs 
+  DEPENDENCIES
+  std_msgs
 )
 
 
 catkin_package(
-   CATKIN_DEPENDS message_runtime
+  CATKIN_DEPENDS message_runtime
 )
 
 
