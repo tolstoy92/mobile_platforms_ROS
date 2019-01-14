@@ -12,6 +12,7 @@ PLANNER_RANGE = 0.05
 RUN_TIME = 1
 INIT_SPEED = 2
 ROTATION_SPEED = 0.5
+
 kp = 0.01
 ki = 0.0001
 kd = 0.00009
@@ -24,3 +25,6 @@ kd = 0.00009
 
 iMin = -0.2
 iMax = 0.2
+
+
+platform_target = {0: 246}

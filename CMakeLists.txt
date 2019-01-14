@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(platforms_server)
 
+
 catkin_python_setup()
+
+
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -19,6 +22,8 @@ add_message_files(
   GoalData.msg
   ObstacleData.msg
   FieldObjects.msg
+  Path.msg
+  All_pathes.msg
 )
 
 

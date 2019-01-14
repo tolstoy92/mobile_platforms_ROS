@@ -32,15 +32,12 @@ def callback(data):
 
                 aruco_data_msg.markers = markers
 
-                # markers_msg.markers = corners_msgs_list
-                # markers_msg.ids = ids_msgs_list
-
                 markers_data_publisher.publish(aruco_data_msg)
 
                 aruco.drawDetectedMarkers(cv_image, all_corners, ids_np)
 
-            cv2.imshow("cv_img", cv_image)
-            cv2.waitKey(3)
+            # cv2.imshow("cv_img", cv_image)
+            # cv2.waitKey(3)
         except CvBridgeError as e:
             print(e)
     else:

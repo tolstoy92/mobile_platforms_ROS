@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+
 import rospy
 import cv2, cv2.aruco as aruco
 from sensor_msgs.msg import Image
