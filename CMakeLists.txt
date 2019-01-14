@@ -23,7 +23,7 @@ add_message_files(
   ObstacleData.msg
   FieldObjects.msg
   Path.msg
-  All_pathes.msg
+  AllPathes.msg
 )
 
 

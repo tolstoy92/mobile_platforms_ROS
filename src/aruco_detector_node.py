@@ -24,20 +24,12 @@ def callback(data):
             all_corners, ids_np, _ = aruco.detectMarkers(cv_image, aruco_dict, parameters=parameters)
             if not isinstance(ids_np, type(None)):
                 aruco_data_msg = ArucoData()
-
                 corners_msgs_list = corners_to_msg(all_corners)
                 ids_msgs_list = list(id[0] for id in ids_np.tolist())
-
                 markers = list(MarkerData(id, corners) for id, corners in zip(ids_msgs_list, corners_msgs_list))
-
                 aruco_data_msg.markers = markers
-
                 markers_data_publisher.publish(aruco_data_msg)
 
-                aruco.drawDetectedMarkers(cv_image, all_corners, ids_np)
-
-            # cv2.imshow("cv_img", cv_image)
-            # cv2.waitKey(3)
         except CvBridgeError as e:
             print(e)
     else:
@@ -50,7 +42,6 @@ aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_250)
 parameters = aruco.DetectorParameters_create()
 
 rospy.init_node("aruco_detector_node")
-
 markers_data_publisher = rospy.Publisher("detected_markers", ArucoData)
 image_sub = rospy.Subscriber("square_image", Image, callback)
 

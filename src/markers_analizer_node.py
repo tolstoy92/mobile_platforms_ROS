@@ -5,10 +5,10 @@ from platforms_server.msg import ArucoData, FieldObjects
 from vision.MarkersAnalizer import MarkersAnalizer
 
 
-def recognize_fields_object_by_id(data):
+def recognize_fields_object_by_id(msg_data):
     ids = []
     corners = []
-    for object in data.markers:
+    for object in msg_data.markers:
         ids.append(object.id)
         corners.append(object.corners)
     markers_dict = dict(zip(ids, corners))
@@ -20,9 +20,9 @@ def recognize_fields_object_by_id(data):
     return robots, goals, obstacles
 
 
-def callback(data):
+def callback(msg_data):
     objects_msg = FieldObjects()
-    robots, goals, obstacles = recognize_fields_object_by_id(data)
+    robots, goals, obstacles = recognize_fields_object_by_id(msg_data)
 
     objects_msg.robots = list(robot.prepare_msg() for robot in robots.values())
     objects_msg.goals = list(goal.prepare_msg() for goal in goals.values())
