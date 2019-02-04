@@ -7,9 +7,7 @@
   <maintainer email="tolstoy.i.m@yandex.ru">user</maintainer>
 
   <license>TODO</license>
-
-  <repository><url type="website">https://github.com/tolstoy92/mobile_platforms_ROS</url></repository>
-
+	
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>

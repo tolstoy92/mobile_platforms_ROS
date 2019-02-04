@@ -2,7 +2,7 @@ from numpy import array
 from math import degrees, sqrt, acos
 from matplotlib.path import Path
 from vision.vision_constants import IMAGE_SIZE, HIGH_BOUNDS, LOW_BOUNDS
-from platforms_server.msg import RobotData, GoalData, ObstacleData
+from platforms_server.msg import RobotData, GoalData, ObstacleData, Point2d
 
 
 class Point:
@@ -97,6 +97,7 @@ class Robot(Marker):
     def __init__(self, id, corners):
         Marker.__init__(self, id, corners)
         self.direction = self.get_direction()
+        self.path_created = False
 
     def prepare_msg(self):
         msg = RobotData()
@@ -104,8 +105,10 @@ class Robot(Marker):
         msg.center = self.center
         msg.direction = self.get_direction()
         msg.corners = self.corners
+        msg.path_created = self.path_created
+        if self.path_created:
+            msg.path = self.path
         return msg
-
 
     def get_direction(self):
         front_left_corner = self.corners[0]
@@ -158,6 +161,13 @@ class Robot(Marker):
             projection.y = (projection.x - self.center.x) * (destination_point.y - self.center.y) / 1 + self.center.y
         return projection
 
+    def set_path(self, path_msg):
+        if not self.path_created:
+            path = []
+            for pt in path_msg:
+                path.append(Point((pt.x, pt.y)))
+            self.path = path
+            self.path_created = True
 
 class Obstacle:
     def __init__(self, id, marker_list):

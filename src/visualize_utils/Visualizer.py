@@ -14,7 +14,6 @@ class Visualizer():
         rospy.init_node("visualizer_node")
         img_sub = rospy.Subscriber("square_image", Image, self.img_callback)
         field_objects_sub = rospy.Subscriber("field_objects", FieldObjects_msg, self.objects_callback)
-        path_sub = rospy.Subscriber("paths_data", AllPathes, self.paths_callback)
 
     def img_callback(self, data):
         if not rospy.is_shutdown():
@@ -23,28 +22,35 @@ class Visualizer():
                 self.IMG = cv_image
                 self.draw_objects()
                 self.draw_paths()
+                self.clear_field_objects()
+                self.clear_paths()
                 cv2.imshow("img22", self.IMG)
                 cv2.waitKey(3)
             except CvBridgeError as e:
                 print(e)
 
+    def objects_callback(self, data):
+        self.fields_objects = data
+
     def draw_point(self, point):
         cv2.circle(self.IMG, (int(point.x), int(point.y)), 1, (255, 0, 100), 3)
 
-    def objects_callback(self, data):
-        self.fields_objects = data
+    def clear_paths(self):
+        self.pathes = None
+
+    def clear_field_objects(self):
+        self.fields_objects = None
 
     def draw_objects(self):
         if self.fields_objects:
             for robot in self.fields_objects.robots:
                 self.draw_point(robot.center)
+                for pt in robot.path:
+                    self.draw_point(pt)
             for obstacle in self.fields_objects.obstacles:
                 self.draw_point(obstacle.center)
             for goal in self.fields_objects.goals:
                 self.draw_point(goal.center)
-
-    def paths_callback(self, data):
-        self.pathes = data
 
     def draw_paths(self):
         if self.pathes:

@@ -23,6 +23,7 @@ def prepare_msg(paths):
     for path_id in paths.keys():
         path_msg = Path()
         actual_path = planner.path_to_point_list(paths[path_id])
+        path_msg.platform_id = path_id
         path_msg.path_points = list(pt for pt in actual_path)
         paths_list.append(path_msg)
     all_pathes_msg.paths_list = paths_list
@@ -32,6 +33,6 @@ def prepare_msg(paths):
 rospy.init_node("aruco_detector_node")
 planner = Paths_planner()
 objects_sub = rospy.Subscriber("field_objects", FieldObjects_msg, callback)
-paths_data_publisher = rospy.Publisher("paths_data", AllPathes)
+paths_data_publisher = rospy.Publisher("paths_data", AllPathes, queue_size=30)
 
 rospy.spin()

@@ -25,4 +25,4 @@ kd = 0.00009
 iMin = -0.2
 iMax = 0.2
 
-platform_target = {0: 246}
+platform_target = {2: 246}

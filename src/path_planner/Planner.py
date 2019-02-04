@@ -28,20 +28,21 @@ class Paths_planner():
         """
         paths = {}
         for robot_id in self.robots.keys():
-            try:
-                target_id = const.platform_target[robot_id]
-                tmp_targets = self.targets.copy()
-                tmp_robots = self.robots.copy()
-                if target_id in list(tmp_targets.keys()):
+            if not self.robots[robot_id].path_created:
+                try:
+                    target_id = const.platform_target[robot_id]
+                    tmp_targets = self.targets.copy()
+                    tmp_robots = self.robots.copy()
+                    if target_id in list(tmp_targets.keys()):
 
-                    img_target_position = tmp_targets[target_id].center
-                    target_position = Point(img_target_position).remap_to_ompl_coord_system().get_xy()
-                    img_robot_position = tmp_robots[robot_id].center
-                    robot_position = Point(img_robot_position).remap_to_ompl_coord_system().get_xy()
-                    full_obstacles = self.get_full_obstacles(robot_id, target_id)
-                    paths[robot_id] = self.plan(robot_position, target_position, const.PLANNER_RANGE, full_obstacles)
-            except:
-                pass
+                        img_target_position = tmp_targets[target_id].center
+                        target_position = Point(img_target_position).remap_to_ompl_coord_system().get_xy()
+                        img_robot_position = tmp_robots[robot_id].center
+                        robot_position = Point(img_robot_position).remap_to_ompl_coord_system().get_xy()
+                        full_obstacles = self.get_full_obstacles(robot_id, target_id)
+                        paths[robot_id] = self.plan(robot_position, target_position, const.PLANNER_RANGE, full_obstacles)
+                except:
+                    pass
         return paths
 
     def get_full_obstacles(self, actual_robot_id, actual_target_id):
@@ -63,14 +64,12 @@ class Paths_planner():
         tmp_robots = self.robots.copy()
         tmp_robots.pop(actual_robot_id)
         robots_as_obstacles = self.get_obstacles_from_any_objects(tmp_robots)
-        print(robots_as_obstacles)
         return robots_as_obstacles
 
     def targets_as_obstacles(self, actual_target_id):
         tmp_targets = self.targets.copy()
         tmp_targets.pop(actual_target_id)
         targets_as_obstacles = self.get_obstacles_from_any_objects(tmp_targets)
-        print(targets_as_obstacles)
         return targets_as_obstacles
 
     def get_line_cntr(self, pt1, pt2):
@@ -86,7 +85,8 @@ class Paths_planner():
     def set_robots(self, robots_list):
         robots_dict = dict()
         for robot in robots_list:
-            robots_dict[robot.id] = robot
+            if not robot.path_created:
+                robots_dict[robot.id] = robot
         self.robots = robots_dict
 
     def set_obstacles(self, obstacles_list):
