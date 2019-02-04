@@ -7,7 +7,11 @@
   <maintainer email="tolstoy.i.m@yandex.ru">user</maintainer>
 
   <license>TODO</license>
+<<<<<<< HEAD
 	
+=======
+
+>>>>>>> cf993febc449d393a3e753e71d626c9b6675f55e
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
