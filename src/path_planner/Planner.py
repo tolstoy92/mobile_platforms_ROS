@@ -5,6 +5,7 @@ from ompl.util import OMPL_ERROR
 from path_planner import planner_constants as const
 from functools import partial
 from vision.Fileds_objects import Point
+from random import choice
 import numpy as np
 from matplotlib.path import Path
 
@@ -16,9 +17,6 @@ class Paths_planner():
         self.obstacles = {}
 
     def multiple_paths_planning(self):
-        # print('Program started')
-        # print('Connected to remote API server')
-        # print("Robots number: {0}".format(len(self.robots)))
         robots_paths, estimated_time = self.target_assignment()
         return robots_paths, estimated_time
 
@@ -27,35 +25,28 @@ class Paths_planner():
         Target assignment and path planning function for group of robots
         """
         paths = {}
-        for robot_id in self.robots.keys():
-            if not self.robots[robot_id].path_created:
-                try:
-                    target_id = const.platform_target[robot_id]
-                    tmp_targets = self.targets.copy()
-                    tmp_robots = self.robots.copy()
-                    if target_id in list(tmp_targets.keys()):
 
-                        img_target_position = tmp_targets[target_id].center
-                        target_position = Point(img_target_position).remap_to_ompl_coord_system().get_xy()
-                        img_robot_position = tmp_robots[robot_id].center
-                        robot_position = Point(img_robot_position).remap_to_ompl_coord_system().get_xy()
-                        full_obstacles = self.get_full_obstacles(robot_id, target_id)
-                        paths[robot_id] = self.plan(robot_position, target_position, const.PLANNER_RANGE, full_obstacles)
-                except:
-                    pass
+        for robot_id in self.robots.keys():
+            tmp_targets = self.targets.copy()
+            tmp_robots = self.robots.copy()
+            target_id = choice(tmp_targets.keys())
+            target_position = tmp_targets[target_id].center
+            robot_position = tmp_robots[robot_id].center
+            full_obstacles = self.get_full_obstacles(robot_id, target_id)
+            paths[robot_id] = self.plan(robot_position, target_position, const.PLANNER_RANGE, full_obstacles)
+            tmp_targets.pop(target_id)
         return paths
 
     def get_full_obstacles(self, actual_robot_id, actual_target_id):
-        robots_obstacles = self.robots_as_obstacles(actual_robot_id)
         targets_obstacles = self.targets_as_obstacles(actual_target_id)
         obstalces = self.get_obstacles_from_any_objects(self.obstacles)
-        full_obstacles = obstalces + robots_obstacles + targets_obstacles
+        full_obstacles = obstalces + targets_obstacles
         return full_obstacles
 
     def get_obstacles_from_any_objects(self, objects_dict):
         full_obstacles = []
         for obstacle in objects_dict.values():
-            corners_list = list(Point(xy).remap_to_ompl_coord_system().get_xy() for xy in obstacle.corners)
+            corners_list = list(Point(xy).get_xy() for xy in obstacle.corners)
             path = Path(np.array(corners_list))
             full_obstacles.append(path)
         return full_obstacles
@@ -64,29 +55,20 @@ class Paths_planner():
         tmp_robots = self.robots.copy()
         tmp_robots.pop(actual_robot_id)
         robots_as_obstacles = self.get_obstacles_from_any_objects(tmp_robots)
+        print(robots_as_obstacles)
         return robots_as_obstacles
 
     def targets_as_obstacles(self, actual_target_id):
         tmp_targets = self.targets.copy()
         tmp_targets.pop(actual_target_id)
         targets_as_obstacles = self.get_obstacles_from_any_objects(tmp_targets)
+        print(targets_as_obstacles)
         return targets_as_obstacles
-
-    def get_line_cntr(self, pt1, pt2):
-        line_cntr = tuple(map(lambda x: x, ((pt1[0] + pt2[0]) / 2, (pt1[1] + pt2[1]) / 2)))
-        return line_cntr
-
-    def get_marker_cntr(self, sqr):
-        front_left_corner = sqr[0]
-        behind_right_corner = sqr[2]
-        cntr = self.get_line_cntr(front_left_corner, behind_right_corner)
-        return cntr
 
     def set_robots(self, robots_list):
         robots_dict = dict()
         for robot in robots_list:
-            if not robot.path_created:
-                robots_dict[robot.id] = robot
+            robots_dict[robot.id] = robot
         self.robots = robots_dict
 
     def set_obstacles(self, obstacles_list):
@@ -100,10 +82,6 @@ class Paths_planner():
         for goal in goals_list:
             targets_dict[goal.id] = goal
         self.targets = targets_dict
-
-    def set_targets_corners(self, corners):
-        self.targets_corners = []
-        self.targets_corners = corners
 
     def plan(self, start_pos, goal_pos, planner_range, obstacles):
         """
@@ -183,7 +161,6 @@ class Paths_planner():
         space_info = ob.SpaceInformation(space)
         isValidFn = ob.StateValidityCheckerFn(partial(self.isStateValid, obstacle_list))
         space_info.setStateValidityChecker(isValidFn)
-        # space_info.setStateValidityChecker(ob.StateValidityCheckerFn(self.isStateValid))
         space_info.setup()
         return space_info
 
@@ -209,11 +186,11 @@ class Paths_planner():
         """
         pdef = ob.ProblemDefinition(space_info)
         start = ob.State(space)
-        start[0] = start_pos[0]
-        start[1] = start_pos[1]
+        start[0] = start_pos.x
+        start[1] = start_pos.y
         goal = ob.State(space)
-        goal[0] = goal_pos[0]
-        goal[1] = goal_pos[1]
+        goal[0] = goal_pos.x
+        goal[1] = goal_pos.y
         pdef.setStartAndGoalStates(start, goal)
         return pdef
 
@@ -223,6 +200,6 @@ class Paths_planner():
         for state in states:
             x = state.getX()
             y = state.getY()
-            cv_point = Point((x, y)).remap_to_img_coord_system()
-            path_lst.append(cv_point)
+            point = Point((x, y))
+            path_lst.append(point)
         return path_lst

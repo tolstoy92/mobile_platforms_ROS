@@ -1,49 +1,12 @@
-import rospy
 from vision.Fileds_objects import Robot, Goal, Obstacle, Marker
 from vision.vision_constants import EPS
 from math import sqrt
-from platforms_server.msg import FieldObjects as FieldObjects_msg, ArucoData, AllPathes
 
 class MarkersAnalizer:
     def __init__(self):
         self.__robots = {}
         self.__goals = {}
         self.__obstacles = {}
-        rospy.init_node("markers_analizer_node")
-        self.markers_data_sub = rospy.Subscriber("detected_markers", ArucoData, self.field_objects_callback)
-        self.paths_data_sub = rospy.Subscriber("paths_data", AllPathes, self.paths_callback)
-        self.field_objects_pub = rospy.Publisher("field_objects", FieldObjects_msg, queue_size=30)
-
-    def recognize_fields_object_by_id(self, msg_data):
-        ids = []
-        corners = []
-        robots_dict = {}
-        for object in msg_data.markers:
-            ids.append(object.id)
-            corners.append(object.corners)
-        markers_dict = dict(zip(ids, corners))
-        self.parse_fields_objects_by_id(markers_dict)
-        robots = self.get_robots()
-        goals = self.get_goals()
-        obstacles = self.get_obstacles()
-
-        return robots, goals, obstacles
-
-    def field_objects_callback(self, msg_data):
-        self.clear_obstacles()
-        objects_msg = FieldObjects_msg()
-        robots, goals, obstacles = self.recognize_fields_object_by_id(msg_data)
-        objects_msg.robots = list(robot.prepare_msg() for robot in robots.values())
-        objects_msg.goals = list(goal.prepare_msg() for goal in goals.values())
-        objects_msg.obstacles = list(obstacle.prepare_msg() for obstacle in obstacles.values())
-        self.field_objects_pub.publish(objects_msg)
-
-    def paths_callback(self, msg_data):
-        paths_dict = {}
-        for path in msg_data.paths_list:
-            paths_dict[path.platform_id] = path.path_points
-        for id in paths_dict:
-            self.__robots[id].set_path(paths_dict[id])
 
     def get_robots(self):
         return self.__robots
@@ -54,18 +17,12 @@ class MarkersAnalizer:
     def get_obstacles(self):
         return self.__obstacles
 
-    def set_pathes(self, pathes):
-        self.pathes = pathes
-
     def parse_fields_objects_by_id(self, objects_dict):
         tmp_obstacles_dict = {}
         tmp_goals_dict = {}
         for key in objects_dict.keys():
             if len(str(key)) == 1:
-                if key not in self.__robots.keys():
-                    self.__robots[key] = Robot(key, objects_dict[key])
-                else:
-                    self.__robots[key].set_path(objects_dict[key])
+                self.__robots[key] = Robot(key, objects_dict[key])
             elif len(str(key)) == 3:
                 tmp_goals_dict[key] = Goal(key, objects_dict[key])
             else:
@@ -93,19 +50,5 @@ class MarkersAnalizer:
 
     def get_distance_between_pts(self, pt1, pt2):
         return sqrt((pt2.x - pt1.x) ** 2 + (pt2.y - pt1.y) ** 2)
-
-    def clear_robots(self):
-        self.__robots = {}
-
-    def clear_goals(self):
-        self.__goals = {}
-
-    def clear_obstacles(self):
-        self.__obstacles = {}
-
-    def clear_fields_objects(self):
-        self.clear_goals()
-        self.clear_robots()
-        self.clear_obstacles()
 
 
