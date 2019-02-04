@@ -31,7 +31,7 @@ def prepare_msg(paths):
 
 rospy.init_node("path_planner_node")
 planner = Paths_planner()
-objects_sub = rospy.Subscriber("vrep_data", FieldObjects_msg, callback)
+objects_sub = rospy.Subscriber("field_objects", FieldObjects_msg, callback)
 paths_data_publisher = rospy.Publisher("paths_data", AllPathes)
 
 rospy.spin()

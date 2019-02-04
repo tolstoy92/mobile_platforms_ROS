@@ -4,6 +4,7 @@ import rospy
 from vrep_communicator.VrepCommunicator import Vrep
 from platforms_server.msg import RobotData, GoalData, ObstacleData, FieldObjects
 
+
 def prepare_robot_msg(robots):
     goal_msgs = []
     for id in robots:
@@ -15,6 +16,7 @@ def prepare_robot_msg(robots):
         goal_msgs.append(msg)
     return goal_msgs
 
+
 def prepare_goal_msg(goals):
     robot_msgs = []
     for id in goals:
@@ -24,6 +26,7 @@ def prepare_goal_msg(goals):
         msg.corners = goals[id][1]
         robot_msgs.append(msg)
     return robot_msgs
+
 
 def prepare_obstacle_msg(obstacles):
     obstacle_msgs = []
@@ -35,8 +38,9 @@ def prepare_obstacle_msg(obstacles):
         obstacle_msgs.append(msg)
     return obstacle_msgs
 
+
 rospy.init_node("vrep_communicator_node")
-vrep_data_publisher = rospy.Publisher("vrep_data", FieldObjects)
+vrep_data_publisher = rospy.Publisher("field_objects", FieldObjects)
 vrep_con = Vrep()
 objects_msg = FieldObjects()
 robots_data = vrep_con.get_robots_data()
